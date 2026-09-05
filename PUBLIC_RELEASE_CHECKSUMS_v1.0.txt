@@ -1,0 +1,6 @@
+AKI Grade IV Web Calculator - Public Release Checksum Record
+Version: 1.0
+Frozen file: AKI_GradeIV_WebCalculator_frozen.html
+SHA-256: 537efa4859a02e7773fef65996bd60c2460dd19f78d9e5eb512ef921258e9e7b
+
+This public-release checksum records the exact frozen HTML artifact intended for GitHub Pages and archival deposition.

@@ -1,0 +1,1065 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Postoperative Acute Kidney Injury Prediction Calculator</title>
+  <style>
+    :root {
+      --bg: #f4f7f9;
+      --surface: #ffffff;
+      --text: #17212b;
+      --muted: #5d6975;
+      --line: #d7dee4;
+      --accent: #245b78;
+      --accent-dark: #17445d;
+      --soft: #eef4f7;
+      --error: #9b2c2c;
+      --error-bg: #fff2f2;
+      --warning: #7b5a11;
+      --warning-bg: #fff9e8;
+      --focus: #0b6b9a;
+      --shadow: 0 10px 26px rgba(31, 51, 65, 0.08);
+      --radius: 14px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { -webkit-text-size-adjust: 100%; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      line-height: 1.5;
+    }
+
+    .page {
+      width: min(1080px, calc(100% - 32px));
+      margin: 28px auto 42px;
+    }
+
+    .hero,
+    .context,
+    fieldset,
+    .actions,
+    .result-panel,
+    .notice-panel,
+    .footer-panel {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero {
+      padding: 28px 30px 24px;
+      border-top: 5px solid var(--accent);
+    }
+
+    .eyebrow {
+      margin: 0 0 8px;
+      color: var(--accent-dark);
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.65rem, 3.2vw, 2.35rem);
+      line-height: 1.18;
+      letter-spacing: -0.02em;
+    }
+
+    .subtitle {
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-size: 1rem;
+    }
+
+    .context {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0;
+      margin-top: 16px;
+      overflow: hidden;
+    }
+
+    .context-item {
+      padding: 16px 18px;
+      min-height: 82px;
+    }
+
+    .context-item + .context-item {
+      border-left: 1px solid var(--line);
+    }
+
+    .context-label {
+      display: block;
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: 5px;
+    }
+
+    .context-value {
+      font-size: 0.96rem;
+      font-weight: 650;
+    }
+
+    form { margin-top: 18px; }
+
+    fieldset {
+      margin: 0 0 16px;
+      padding: 20px 22px 22px;
+      min-inline-size: 0;
+    }
+
+    legend {
+      padding: 0 8px;
+      color: var(--accent-dark);
+      font-size: 1.03rem;
+      font-weight: 750;
+    }
+
+    .input-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px 20px;
+    }
+
+    .field {
+      min-width: 0;
+    }
+
+    .field.full {
+      grid-column: 1 / -1;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 7px;
+      font-weight: 650;
+      font-size: 0.94rem;
+    }
+
+    .control-row {
+      display: flex;
+      align-items: stretch;
+      min-width: 0;
+    }
+
+    input,
+    select,
+    button {
+      font: inherit;
+    }
+
+    input,
+    select {
+      width: 100%;
+      min-width: 0;
+      min-height: 46px;
+      padding: 10px 12px;
+      border: 1px solid #aeb9c2;
+      border-radius: 9px;
+      background: #fff;
+      color: var(--text);
+      outline: none;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: var(--focus);
+      box-shadow: 0 0 0 3px rgba(11, 107, 154, 0.14);
+    }
+
+    .unit {
+      display: inline-flex;
+      align-items: center;
+      flex: 0 0 auto;
+      min-width: 92px;
+      justify-content: center;
+      padding: 0 11px;
+      margin-left: 7px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: var(--soft);
+      color: #354653;
+      font-size: 0.86rem;
+      font-weight: 650;
+      white-space: nowrap;
+    }
+
+    .helper,
+    .error-text,
+    .warning-text {
+      margin: 6px 0 0;
+      font-size: 0.82rem;
+    }
+
+    .helper { color: var(--muted); }
+    .error-text { color: var(--error); font-weight: 650; }
+    .warning-text { color: var(--warning); font-weight: 650; }
+
+    .field.invalid input,
+    .field.invalid select {
+      border-color: var(--error);
+      background: var(--error-bg);
+    }
+
+    .field.warning input {
+      border-color: #b18b32;
+      background: var(--warning-bg);
+    }
+
+    .actions {
+      margin-top: 16px;
+      padding: 18px 20px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+    }
+
+    button {
+      min-height: 44px;
+      padding: 10px 16px;
+      border-radius: 9px;
+      border: 1px solid transparent;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .primary {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .primary:hover { background: var(--accent-dark); }
+
+    .secondary {
+      background: #fff;
+      color: var(--text);
+      border-color: #aeb9c2;
+    }
+
+    button:focus-visible {
+      outline: 3px solid rgba(11, 107, 154, 0.28);
+      outline-offset: 2px;
+    }
+
+    .form-status {
+      flex: 1 1 320px;
+      min-height: 24px;
+      color: var(--error);
+      font-size: 0.9rem;
+      font-weight: 650;
+    }
+
+    .result-panel {
+      display: none;
+      margin-top: 18px;
+      padding: 24px;
+      border-top: 5px solid var(--accent);
+    }
+
+    .result-panel.visible { display: block; }
+
+    .result-kicker {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 750;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .result-value {
+      margin: 5px 0 4px;
+      font-size: clamp(2.3rem, 7vw, 4.2rem);
+      line-height: 1;
+      font-weight: 780;
+      letter-spacing: -0.035em;
+    }
+
+    .result-label {
+      margin: 0;
+      font-weight: 650;
+    }
+
+    .result-panel details {
+      margin-top: 18px;
+      border-top: 1px solid var(--line);
+      padding-top: 14px;
+    }
+
+    .result-panel summary {
+      cursor: pointer;
+      font-weight: 700;
+      color: var(--accent-dark);
+    }
+
+    .field-details {
+      margin-top: 8px;
+      padding: 0;
+      border: 0;
+    }
+
+    .field-details summary {
+      cursor: pointer;
+      color: var(--accent-dark);
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+
+    .field-details p {
+      margin: 7px 0 0;
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    .derived-field {
+      grid-column: 1 / -1;
+      padding: 14px 15px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--soft);
+    }
+
+    .derived-field label {
+      margin-bottom: 8px;
+    }
+
+    .derived-value-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .derived-value {
+      display: inline-flex;
+      align-items: center;
+      min-height: 46px;
+      min-width: 140px;
+      padding: 10px 12px;
+      border: 1px solid #aeb9c2;
+      border-radius: 9px;
+      background: #fff;
+      color: var(--text);
+      font-weight: 750;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .formula-note {
+      margin: 8px 0 0;
+      color: #354653;
+      font-size: 0.84rem;
+      font-weight: 650;
+    }
+
+    .derived-explanation {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    .technical-grid {
+      display: grid;
+      grid-template-columns: minmax(170px, 0.7fr) 1fr;
+      gap: 8px 16px;
+      margin-top: 12px;
+      font-size: 0.9rem;
+    }
+
+    .technical-grid dt {
+      color: var(--muted);
+      font-weight: 650;
+    }
+
+    .technical-grid dd {
+      margin: 0;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      overflow-wrap: anywhere;
+    }
+
+    .notice-panel {
+      margin-top: 18px;
+      padding: 20px 22px;
+    }
+
+    .notice-panel h2 {
+      margin: 0 0 10px;
+      font-size: 1.02rem;
+    }
+
+    .notice-panel p {
+      margin: 8px 0;
+      color: #354653;
+      font-size: 0.91rem;
+    }
+
+    .research-only {
+      font-weight: 750;
+      color: var(--text) !important;
+    }
+
+    .footer-panel {
+      margin-top: 16px;
+      padding: 15px 18px;
+      color: var(--muted);
+      font-size: 0.8rem;
+      box-shadow: none;
+    }
+
+    .footer-panel p { margin: 4px 0; }
+
+    .sr-only {
+      position: absolute !important;
+      width: 1px !important;
+      height: 1px !important;
+      padding: 0 !important;
+      margin: -1px !important;
+      overflow: hidden !important;
+      clip: rect(0, 0, 0, 0) !important;
+      white-space: nowrap !important;
+      border: 0 !important;
+    }
+
+    @media (max-width: 760px) {
+      .page {
+        width: min(100% - 20px, 1080px);
+        margin-top: 12px;
+      }
+
+      .hero { padding: 22px 20px 19px; }
+
+      .context {
+        grid-template-columns: 1fr;
+      }
+
+      .context-item + .context-item {
+        border-left: 0;
+        border-top: 1px solid var(--line);
+      }
+
+      fieldset {
+        padding: 18px 16px 19px;
+      }
+
+      .input-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .field.full { grid-column: auto; }
+
+      .actions {
+        align-items: stretch;
+      }
+
+      .actions button {
+        flex: 1 1 100%;
+      }
+
+      .form-status {
+        flex-basis: 100%;
+      }
+
+      .technical-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .technical-grid dd {
+        margin-bottom: 7px;
+      }
+    }
+
+    @media print {
+      body { background: #fff; }
+      .page { width: 100%; margin: 0; }
+      .hero, .context, fieldset, .actions, .result-panel, .notice-panel, .footer-panel {
+        box-shadow: none;
+      }
+      .actions { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero" aria-labelledby="page-title">
+      <p class="eyebrow">Grade IV abdominal surgery</p>
+      <h1 id="page-title">Postoperative Acute Kidney Injury Prediction Calculator</h1>
+      <p class="subtitle">Final shrinkage-adjusted model for patients undergoing Grade IV abdominal surgery</p>
+    </section>
+
+    <section class="context" aria-label="Model context">
+      <div class="context-item">
+        <span class="context-label">Population</span>
+        <span class="context-value">Patients undergoing Grade IV abdominal surgery</span>
+      </div>
+      <div class="context-item">
+        <span class="context-label">Prediction time point</span>
+        <span class="context-value">Completion of surgery</span>
+      </div>
+      <div class="context-item">
+        <span class="context-label">Outcome</span>
+        <span class="context-value">Postoperative acute kidney injury within 7 days</span>
+      </div>
+    </section>
+
+    <form id="calculator-form" novalidate autocomplete="off">
+      <fieldset>
+        <legend>Comorbidities and exposure</legend>
+        <div class="input-grid">
+          <div class="field" id="field-diabetes">
+            <label for="diabetes">Diabetes mellitus</label>
+            <select id="diabetes" name="diabetes" autocomplete="off">
+              <option value="" selected>Select No or Yes</option>
+              <option value="0">No</option>
+              <option value="1">Yes</option>
+            </select>
+            <p class="helper">Preoperative status. Select No or Yes.</p>
+            <p class="error-text" id="error-diabetes" hidden></p>
+          </div>
+
+          <div class="field" id="field-ckd">
+            <label for="ckd">Chronic kidney disease</label>
+            <select id="ckd" name="ckd" autocomplete="off">
+              <option value="" selected>Select No or Yes</option>
+              <option value="0">No</option>
+              <option value="1">Yes</option>
+            </select>
+            <p class="helper">Preoperative status. Select No or Yes.</p>
+            <p class="error-text" id="error-ckd" hidden></p>
+          </div>
+
+          <div class="field full" id="field-nephrotoxic-antibiotics">
+            <label for="nephrotoxic-antibiotics">Nephrotoxic antibiotic exposure</label>
+            <select id="nephrotoxic-antibiotics" name="nephrotoxic_antibiotics" autocomplete="off">
+              <option value="" selected>Select No or Yes</option>
+              <option value="0">No</option>
+              <option value="1">Yes</option>
+            </select>
+            <p class="helper">Exposure from 7 days before surgery through completion of surgery.</p>
+            <details class="field-details">
+              <summary>Definition used in this study</summary>
+              <p>Study-defined agents: vancomycin, gentamicin, amikacin, tobramycin, polymyxin B, amphotericin B, and colistin.</p>
+            </details>
+            <p class="error-text" id="error-nephrotoxic-antibiotics" hidden></p>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Laboratory measures</legend>
+        <div class="input-grid">
+          <div class="field" id="field-bun">
+            <label for="bun">Blood urea nitrogen</label>
+            <div class="control-row">
+              <input id="bun" name="bun" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" aria-describedby="helper-bun error-bun warning-bun">
+              <span class="unit">mg/dL</span>
+            </div>
+            <p class="helper" id="helper-bun">Enter the preoperative value in mg/dL. Use a decimal point if needed.</p>
+            <p class="error-text" id="error-bun" hidden></p>
+            <p class="warning-text" id="warning-bun" hidden></p>
+          </div>
+
+          <div class="field" id="field-albumin">
+            <label for="albumin">Serum albumin</label>
+            <div class="control-row">
+              <input id="albumin" name="albumin" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" aria-describedby="helper-albumin error-albumin warning-albumin">
+              <span class="unit">g/L</span>
+            </div>
+            <p class="helper" id="helper-albumin">Enter the preoperative serum albumin value in g/L.</p>
+            <p class="error-text" id="error-albumin" hidden></p>
+            <p class="warning-text" id="warning-albumin" hidden></p>
+          </div>
+
+          <div class="field" id="field-lymphocyte-count">
+            <label for="lymphocyte-count">Lymphocyte count</label>
+            <div class="control-row">
+              <input id="lymphocyte-count" name="lymphocyte_count" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" aria-describedby="helper-lymphocyte-count error-lymphocyte-count warning-lymphocyte-count">
+              <span class="unit">×10⁹/L</span>
+            </div>
+            <p class="helper" id="helper-lymphocyte-count">Enter the preoperative peripheral blood lymphocyte count in ×10⁹/L.</p>
+            <p class="error-text" id="error-lymphocyte-count" hidden></p>
+            <p class="warning-text" id="warning-lymphocyte-count" hidden></p>
+          </div>
+
+          <div class="derived-field" id="derived-pni-field">
+            <label for="pni-display">Prognostic nutritional index (PNI)</label>
+            <div class="derived-value-row">
+              <output class="derived-value" id="pni-display" for="albumin lymphocyte-count" aria-live="polite">—</output>
+              <span class="unit">PNI points</span>
+            </div>
+            <p class="formula-note">PNI = serum albumin (g/L) + 5 × lymphocyte count (×10⁹/L).</p>
+            <details class="field-details">
+              <summary>What is PNI?</summary>
+              <p>PNI is a composite index derived from serum albumin and peripheral blood lymphocyte count. It is calculated automatically and entered into the frozen prediction equation. Albumin and lymphocyte count are used only to derive PNI and are not additional predictors in the model.</p>
+            </details>
+            <p class="warning-text" id="warning-pni-derived" hidden></p>
+          </div>
+
+          <div class="field" id="field-total-bilirubin">
+            <label for="total-bilirubin">Total bilirubin</label>
+            <div class="control-row">
+              <input id="total-bilirubin" name="total_bilirubin" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" aria-describedby="helper-total-bilirubin error-total-bilirubin warning-total-bilirubin">
+              <span class="unit">µmol/L</span>
+            </div>
+            <p class="helper" id="helper-total-bilirubin">Enter the preoperative value in µmol/L. Use a decimal point if needed.</p>
+            <p class="error-text" id="error-total-bilirubin" hidden></p>
+            <p class="warning-text" id="warning-total-bilirubin" hidden></p>
+          </div>
+
+          <div class="field" id="field-sodium">
+            <label for="sodium">Serum sodium</label>
+            <div class="control-row">
+              <input id="sodium" name="sodium" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" aria-describedby="helper-sodium error-sodium warning-sodium">
+              <span class="unit">mmol/L</span>
+            </div>
+            <p class="helper" id="helper-sodium">Enter the preoperative value in mmol/L. Use a decimal point if needed.</p>
+            <p class="error-text" id="error-sodium" hidden></p>
+            <p class="warning-text" id="warning-sodium" hidden></p>
+          </div>
+
+          <div class="field" id="field-d-dimer">
+            <label for="d-dimer">D-dimer</label>
+            <div class="control-row">
+              <input id="d-dimer" name="d_dimer" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" aria-describedby="helper-d-dimer error-d-dimer warning-d-dimer">
+              <span class="unit">µg/L FEU</span>
+            </div>
+            <p class="helper" id="helper-d-dimer">Enter the preoperative value in µg/L FEU; do not divide by 1,000. Enter numbers without thousands separators.</p>
+            <p class="error-text" id="error-d-dimer" hidden></p>
+            <p class="warning-text" id="warning-d-dimer" hidden></p>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Intraoperative factors</legend>
+        <div class="input-grid">
+          <div class="field" id="field-operation-time">
+            <label for="operation-time">Operation time</label>
+            <div class="control-row">
+              <input id="operation-time" name="operation_time" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" aria-describedby="helper-operation-time error-operation-time warning-operation-time">
+              <span class="unit">min</span>
+            </div>
+            <p class="helper" id="helper-operation-time">Enter the original operation time in minutes; do not divide by 60.</p>
+            <p class="error-text" id="error-operation-time" hidden></p>
+            <p class="warning-text" id="warning-operation-time" hidden></p>
+          </div>
+
+          <div class="field" id="field-intraoperative-transfusion">
+            <label for="intraoperative-transfusion">Intraoperative transfusion</label>
+            <select id="intraoperative-transfusion" name="intraoperative_transfusion" autocomplete="off">
+              <option value="" selected>Select No or Yes</option>
+              <option value="0">No</option>
+              <option value="1">Yes</option>
+            </select>
+            <p class="helper">Select Yes if intraoperative transfusion was recorded.</p>
+            <p class="error-text" id="error-intraoperative-transfusion" hidden></p>
+          </div>
+
+          <div class="field full" id="field-vasoactive-drugs">
+            <label for="vasoactive-drugs">Vasoactive drug use</label>
+            <select id="vasoactive-drugs" name="vasoactive_drugs" autocomplete="off">
+              <option value="" selected>Select No or Yes</option>
+              <option value="0">No</option>
+              <option value="1">Yes</option>
+            </select>
+            <p class="helper">Intraoperative use. Select No or Yes.</p>
+            <details class="field-details">
+              <summary>Definition used in this study</summary>
+              <p>Study-defined agents: epinephrine, norepinephrine, phenylephrine, dopamine, dobutamine, or metaraminol.</p>
+            </details>
+            <p class="error-text" id="error-vasoactive-drugs" hidden></p>
+          </div>
+        </div>
+      </fieldset>
+
+      <section class="actions" aria-label="Calculator actions">
+        <button class="primary" type="button" id="calculate-button">Calculate predicted probability</button>
+        <button class="secondary" type="button" id="reset-button">Reset</button>
+        <div class="form-status" id="form-status" role="status" aria-live="polite"></div>
+      </section>
+    </form>
+
+    <section class="result-panel" id="result-panel" aria-labelledby="result-heading" aria-live="polite">
+      <p class="result-kicker">Calculated result</p>
+      <div class="result-value" id="probability-percent">—</div>
+      <p class="result-label" id="result-heading">Predicted probability of postoperative AKI</p>
+
+      <details>
+        <summary>Technical details</summary>
+        <dl class="technical-grid">
+          <dt>Linear predictor (LP)</dt>
+          <dd id="linear-predictor">—</dd>
+          <dt>Raw probability</dt>
+          <dd id="raw-probability">—</dd>
+          <dt>Derived PNI used in equation</dt>
+          <dd id="derived-pni-result">—</dd>
+          <dt>Equation source</dt>
+          <dd>Table 2 final shrinkage-adjusted prediction equation</dd>
+          <dt>Coefficient precision</dt>
+          <dd>Table 2 complete-equation displayed precision</dd>
+        </dl>
+      </details>
+    </section>
+
+    <section class="notice-panel" aria-labelledby="model-information-heading">
+      <h2 id="model-information-heading">Model information and use boundary</h2>
+      <p>This calculator reproduces the final shrinkage-adjusted prediction equation developed in a single-center retrospective cohort of patients undergoing Grade IV abdominal surgery.</p>
+      <p>The model estimates the probability of postoperative acute kidney injury within 7 days using information available by the completion of surgery.</p>
+      <p>For convenience, this webpage derives PNI automatically from preoperative serum albumin and peripheral blood lymphocyte count. These two source values are used only to calculate PNI and are not additional predictors in the frozen 11-predictor model.</p>
+      <p>The model underwent bootstrap internal validation in the development cohort. Independent external validation has not yet been performed.</p>
+      <p class="research-only">For research and independent evaluation only. This calculator does not provide treatment recommendations or define clinical intervention thresholds.</p>
+      <p>All calculations are performed locally in the browser. Entered values are not transmitted or stored by this webpage.</p>
+    </section>
+
+    <footer class="footer-panel">
+      <p><strong>Calculator version 1.0</strong> · Model equation source: Table 2.</p>
+      <p>No risk categories, recommended cutoffs, treatment recommendations, or clinical intervention thresholds are generated by this webpage.</p>
+    </footer>
+  </main>
+
+  <script>
+  (() => {
+    "use strict";
+
+    /*
+      Frozen implementation rule for v1.0:
+      Use the coefficient precision printed in the COMPLETE FINAL EQUATION in Table 2.
+      Do not substitute adjusted ORs and do not use higher-precision source-workbook values.
+      PNI derivation rule for this webpage: PNI = serum albumin (g/L) + 5 × lymphocyte count (×10^9/L).
+      Albumin and lymphocyte count are source inputs for PNI derivation only and are not additional model predictors.
+    */
+    const MODEL = Object.freeze({
+      intercept: 6.02119698,
+      diabetes: 0.97191027,
+      ckd: 1.59320148,
+      nephrotoxicAntibiotics: 1.32007922,
+      bun: 0.04712723,
+      pni: -0.02086668,
+      totalBilirubin: 0.00855238,
+      sodium: -0.06499161,
+      dDimer: 0.00009639,
+      operationTime: 0.00213465,
+      intraoperativeTransfusion: 0.48936299,
+      vasoactiveDrugs: 1.24229807
+    });
+
+    const binaryFields = Object.freeze([
+      { id: "diabetes", key: "diabetes" },
+      { id: "ckd", key: "ckd" },
+      { id: "nephrotoxic-antibiotics", key: "nephrotoxicAntibiotics" },
+      { id: "intraoperative-transfusion", key: "intraoperativeTransfusion" },
+      { id: "vasoactive-drugs", key: "vasoactiveDrugs" }
+    ]);
+
+    const numericFields = Object.freeze([
+      { id: "bun", key: "bun" },
+      { id: "albumin", key: "albumin" },
+      { id: "lymphocyte-count", key: "lymphocyteCount" },
+      { id: "total-bilirubin", key: "totalBilirubin" },
+      { id: "sodium", key: "sodium" },
+      { id: "d-dimer", key: "dDimer" },
+      { id: "operation-time", key: "operationTime" }
+    ]);
+
+    const allInputIds = Object.freeze([
+      ...binaryFields.map(x => x.id),
+      ...numericFields.map(x => x.id)
+    ]);
+
+    const decimalPattern = /^-?(?:\d+(?:\.\d*)?|\.\d+)$/;
+
+    function byId(id) {
+      return document.getElementById(id);
+    }
+
+    function errorId(id) {
+      return `error-${id}`;
+    }
+
+    function warningId(id) {
+      return `warning-${id}`;
+    }
+
+    function fieldId(id) {
+      return `field-${id}`;
+    }
+
+    function clearFieldState(id) {
+      const field = byId(fieldId(id));
+      if (field) {
+        field.classList.remove("invalid", "warning");
+      }
+
+      const error = byId(errorId(id));
+      if (error) {
+        error.hidden = true;
+        error.textContent = "";
+      }
+
+      const warning = byId(warningId(id));
+      if (warning) {
+        warning.hidden = true;
+        warning.textContent = "";
+      }
+
+      const control = byId(id);
+      if (control) {
+        control.removeAttribute("aria-invalid");
+      }
+    }
+
+    function setError(id, message) {
+      const field = byId(fieldId(id));
+      const error = byId(errorId(id));
+      const control = byId(id);
+
+      if (field) field.classList.add("invalid");
+      if (error) {
+        error.textContent = message;
+        error.hidden = false;
+      }
+      if (control) control.setAttribute("aria-invalid", "true");
+    }
+
+    function setWarning(id, message) {
+      const field = byId(fieldId(id));
+      const warning = byId(warningId(id));
+
+      if (field) field.classList.add("warning");
+      if (warning) {
+        warning.textContent = message;
+        warning.hidden = false;
+      }
+    }
+
+    function parseBinary(id) {
+      const control = byId(id);
+      const value = control.value;
+
+      if (value !== "0" && value !== "1") {
+        setError(id, "Please select No or Yes.");
+        return { ok: false, value: null };
+      }
+
+      return { ok: true, value: Number(value) };
+    }
+
+    function parseNumeric(id) {
+      const control = byId(id);
+      const raw = control.value.trim();
+
+      if (raw === "") {
+        setError(id, "A value is required.");
+        return { ok: false, value: null };
+      }
+
+      if (!decimalPattern.test(raw)) {
+        setError(id, "Enter a number using standard decimal-point notation, without commas or scientific notation.");
+        return { ok: false, value: null };
+      }
+
+      const value = Number(raw);
+
+      if (!Number.isFinite(value)) {
+        setError(id, "Enter a finite numeric value.");
+        return { ok: false, value: null };
+      }
+
+      if (value < 0) {
+        setWarning(id, "Please verify this value and its unit. The entered value will be used unchanged.");
+      }
+
+      return { ok: true, value };
+    }
+
+    function parseNumericQuiet(id) {
+      const raw = byId(id).value.trim();
+
+      if (raw === "" || !decimalPattern.test(raw)) {
+        return null;
+      }
+
+      const value = Number(raw);
+      return Number.isFinite(value) ? value : null;
+    }
+
+    function updateDerivedPNI() {
+      const albumin = parseNumericQuiet("albumin");
+      const lymphocyteCount = parseNumericQuiet("lymphocyte-count");
+      const output = byId("pni-display");
+      const warning = byId("warning-pni-derived");
+
+      warning.hidden = true;
+      warning.textContent = "";
+
+      if (albumin === null || lymphocyteCount === null) {
+        output.textContent = "—";
+        return null;
+      }
+
+      const pni = albumin + 5 * lymphocyteCount;
+
+      if (!Number.isFinite(pni)) {
+        output.textContent = "—";
+        warning.textContent = "The entered albumin and lymphocyte values do not produce a finite PNI.";
+        warning.hidden = false;
+        return null;
+      }
+
+      output.textContent = pni.toFixed(2);
+
+      if (pni < 0) {
+        warning.textContent = "Please verify the source values and units. The derived PNI will be used unchanged.";
+        warning.hidden = false;
+      }
+
+      return pni;
+    }
+
+    function clearResult() {
+      byId("result-panel").classList.remove("visible");
+      byId("probability-percent").textContent = "—";
+      byId("linear-predictor").textContent = "—";
+      byId("raw-probability").textContent = "—";
+      byId("derived-pni-result").textContent = "—";
+    }
+
+    function markResultStale() {
+      clearResult();
+      byId("form-status").textContent = "";
+    }
+
+    function calculate() {
+      byId("form-status").textContent = "";
+      allInputIds.forEach(clearFieldState);
+
+      const values = {};
+      let valid = true;
+      let firstInvalid = null;
+
+      for (const field of binaryFields) {
+        const parsed = parseBinary(field.id);
+        if (!parsed.ok) {
+          valid = false;
+          if (!firstInvalid) firstInvalid = field.id;
+        } else {
+          values[field.key] = parsed.value;
+        }
+      }
+
+      for (const field of numericFields) {
+        const parsed = parseNumeric(field.id);
+        if (!parsed.ok) {
+          valid = false;
+          if (!firstInvalid) firstInvalid = field.id;
+        } else {
+          values[field.key] = parsed.value;
+        }
+      }
+
+      if (valid) {
+        values.pni = values.albumin + 5 * values.lymphocyteCount;
+        if (!Number.isFinite(values.pni)) {
+          valid = false;
+          setError("albumin", "The entered albumin and lymphocyte values do not produce a finite PNI.");
+          setError("lymphocyte-count", "The entered albumin and lymphocyte values do not produce a finite PNI.");
+          firstInvalid = firstInvalid || "albumin";
+        }
+      }
+
+      if (!valid) {
+        clearResult();
+        byId("form-status").textContent = "Please complete or correct the highlighted fields before calculating.";
+        if (firstInvalid) byId(firstInvalid).focus();
+        return;
+      }
+
+      const lp =
+        MODEL.intercept +
+        MODEL.diabetes * values.diabetes +
+        MODEL.ckd * values.ckd +
+        MODEL.nephrotoxicAntibiotics * values.nephrotoxicAntibiotics +
+        MODEL.bun * values.bun +
+        MODEL.pni * values.pni +
+        MODEL.totalBilirubin * values.totalBilirubin +
+        MODEL.sodium * values.sodium +
+        MODEL.dDimer * values.dDimer +
+        MODEL.operationTime * values.operationTime +
+        MODEL.intraoperativeTransfusion * values.intraoperativeTransfusion +
+        MODEL.vasoactiveDrugs * values.vasoactiveDrugs;
+
+      const probability = 1 / (1 + Math.exp(-lp));
+
+      if (!Number.isFinite(lp) || !Number.isFinite(probability)) {
+        clearResult();
+        byId("form-status").textContent = "The calculation could not be completed with the entered finite values.";
+        return;
+      }
+
+      byId("probability-percent").textContent = `${(probability * 100).toFixed(1)}%`;
+      byId("linear-predictor").textContent = lp.toFixed(8);
+      byId("raw-probability").textContent = probability.toFixed(12);
+      byId("derived-pni-result").textContent = values.pni.toFixed(8);
+      byId("result-panel").classList.add("visible");
+      byId("form-status").textContent = "";
+      byId("result-panel").scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+
+    function resetAll() {
+      for (const field of binaryFields) {
+        byId(field.id).value = "";
+      }
+
+      for (const field of numericFields) {
+        byId(field.id).value = "";
+      }
+
+      allInputIds.forEach(clearFieldState);
+      byId("pni-display").textContent = "—";
+      byId("warning-pni-derived").hidden = true;
+      byId("warning-pni-derived").textContent = "";
+      clearResult();
+      byId("form-status").textContent = "";
+    }
+
+    byId("calculate-button").addEventListener("click", calculate);
+    byId("reset-button").addEventListener("click", resetAll);
+
+    for (const id of allInputIds) {
+      const handleEdit = () => {
+        clearFieldState(id);
+        markResultStale();
+        if (id === "albumin" || id === "lymphocyte-count") {
+          updateDerivedPNI();
+        }
+      };
+      byId(id).addEventListener("input", handleEdit);
+      byId(id).addEventListener("change", handleEdit);
+    }
+
+    byId("calculator-form").addEventListener("submit", event => {
+      event.preventDefault();
+      calculate();
+    });
+
+    window.addEventListener("pageshow", () => {
+      resetAll();
+    });
+
+    resetAll();
+  })();
+  </script>
+</body>
+</html>
