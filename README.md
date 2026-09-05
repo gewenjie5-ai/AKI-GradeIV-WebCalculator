@@ -56,7 +56,9 @@ The underlying model underwent bootstrap internal validation in the development 
 
 Please cite the accompanying manuscript when using or evaluating this calculator. Final citation details will be added after publication.
 
-A version-specific archived software DOI will be added after archival release.
+Version-specific archived software record:
+
+https://doi.org/10.5281/zenodo.22346140
 
 ## License and reuse
 
